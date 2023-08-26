@@ -22,9 +22,9 @@ def initialize_database():
     conn.commit()
     conn.close()
 
-# Initialize the database
 initialize_database()
 
+#Function for adding a message. Accessable by locahost:5000/AddMessage?criteria=[criteria]&value=[value]. Checks for duplicates.
 @app.route('/AddMessage', methods=['POST'])
 def add_message():
     try:
@@ -51,6 +51,8 @@ def add_message():
     except Exception as e:
         return jsonify({'error': 'Invalid data format'}), 400
 
+
+#Function for receiving a message. Accessable by locahost:5000/GetMessage?criteria=[criteria]&value=[value]. Will send all messages that meet the criteria.
 @app.route('/GetMessage', methods=['GET'])
 def get_message():
     criteria = request.args.get('criteria')
@@ -59,12 +61,9 @@ def get_message():
     conn = sqlite3.connect('messages.db')
     cursor = conn.cursor()
 
-    if criteria == 'applicationId':
-        cursor.execute('SELECT * FROM messages WHERE application_id = ?', (value,))
-    elif criteria == 'sessionId':
-        cursor.execute('SELECT * FROM messages WHERE session_id = ?', (value,))
-    elif criteria == 'messageId':
-        cursor.execute('SELECT * FROM messages WHERE message_id = ?', (value,))
+
+    if criteria == 'application_id' or criteria == "session_id" or criteria == "message_id":
+        cursor.execute('SELECT * FROM messages WHERE ' + criteria + ' = ?', (value,))
     else:
         conn.close()
         return jsonify({'error': 'Invalid criteria'}), 400
@@ -77,6 +76,7 @@ def get_message():
 
     return jsonify(messages), 200
 
+#Deletes all messages with given criteria.
 @app.route('/DeleteMessage', methods=['DELETE'])
 def delete_message():
     criteria = request.args.get('criteria')
@@ -85,12 +85,8 @@ def delete_message():
     conn = sqlite3.connect('messages.db')
     cursor = conn.cursor()
 
-    if criteria == 'applicationId':
-        cursor.execute('DELETE FROM messages WHERE application_id = ?', (value,))
-    elif criteria == 'sessionId':
-        cursor.execute('DELETE FROM messages WHERE session_id = ?', (value,))
-    elif criteria == 'messageId':
-        cursor.execute('DELETE FROM messages WHERE message_id = ?', (value,))
+    if criteria == 'application_id' or criteria == "session_id" or criteria == "message_id":
+        cursor.execute('DELETE FROM messages WHERE ' + criteria + ' = ?', (value,))
     else:
         conn.close()
         return jsonify({'error': 'Invalid criteria'}), 400
